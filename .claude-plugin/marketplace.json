@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "name": "zjing123-claude-skills",
   "metadata": {
     "name": "zjing123 Claude Skills",
     "description": "Browser automation Skill for Claude Code using Chrome DevTools Protocol",
