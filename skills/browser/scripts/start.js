@@ -2,8 +2,11 @@
 
 import { spawn, execSync } from "node:child_process";
 import puppeteer from "puppeteer-core";
+import { platform } from "node:os";
 
 const useProfile = process.argv[2] === "--profile";
+const isMac = platform() === "darwin";
+const isLinux = platform() === "linux";
 
 if (process.argv[2] && process.argv[2] !== "--profile") {
 	console.log("Usage: start.js [--profile]");
@@ -17,7 +20,20 @@ if (process.argv[2] && process.argv[2] !== "--profile") {
 
 // Kill existing Chrome
 try {
-	execSync("killall 'Google Chrome'", { stdio: "ignore" });
+	if (isMac) {
+		execSync("killall 'Google Chrome'", { stdio: "ignore" });
+	} else if (isLinux) {
+		// On Linux, try multiple possible Chrome process names
+		try {
+			execSync("killall 'chrome'", { stdio: "ignore" });
+		} catch {
+			try {
+				execSync("killall 'google-chrome'", { stdio: "ignore" });
+			} catch {
+				execSync("killall 'chromium-browser'", { stdio: "ignore" });
+			}
+		}
+	}
 } catch {}
 
 // Wait a bit for processes to fully die
@@ -29,7 +45,15 @@ execSync("mkdir -p ~/.cache/browser-tools", { stdio: "ignore" });
 if (useProfile) {
 	// Sync profile with rsync (much faster on subsequent runs)
 	// Adjust the path based on your system
-	const profilePath = process.env["HOME"] + "/Library/Application Support/Google/Chrome/";
+	let profilePath;
+	if (isMac) {
+		profilePath = process.env["HOME"] + "/Library/Application Support/Google/Chrome/";
+	} else if (isLinux) {
+		profilePath = process.env["HOME"] + "/.config/google-chrome/";
+	} else {
+		console.error("✗ Unsupported platform");
+		process.exit(1);
+	}
 	execSync(
 		`rsync -a --delete "${profilePath}" ~/.cache/browser-tools/`,
 		{ stdio: "pipe" },
@@ -37,8 +61,39 @@ if (useProfile) {
 }
 
 // Start Chrome in background (detached so Node can exit)
+let chromePath;
+if (isMac) {
+	chromePath = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+} else if (isLinux) {
+	// Try common Chrome paths on Linux
+	const possiblePaths = [
+		"/usr/bin/google-chrome",
+		"/usr/bin/google-chrome-stable",
+		"/usr/bin/chromium-browser",
+		"/usr/bin/chromium",
+	];
+	// Find the first existing Chrome executable
+	for (const path of possiblePaths) {
+		try {
+			execSync(`test -f "${path}"`, { stdio: "ignore" });
+			chromePath = path;
+			break;
+		} catch {}
+	}
+	if (!chromePath) {
+		console.error("✗ Chrome not found. Please install Chrome or Chromium:");
+		console.error("  sudo apt install google-chrome-stable");
+		console.error("  or");
+		console.error("  sudo apt install chromium-browser");
+		process.exit(1);
+	}
+} else {
+	console.error("✗ Unsupported platform");
+	process.exit(1);
+}
+
 spawn(
-	"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+	chromePath,
 	["--remote-debugging-port=9222", `--user-data-dir=${process.env["HOME"]}/.cache/browser-tools`],
 	{ detached: true, stdio: "ignore" },
 ).unref();

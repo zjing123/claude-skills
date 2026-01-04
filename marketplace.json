@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "metadata": {
+    "name": "zjing123 Claude Skills",
+    "description": "Browser automation Skill for Claude Code using Chrome DevTools Protocol",
+    "homepage": "https://github.com/zjing123/claude-skills",
+    "author": "zjing123",
+    "license": "MIT",
+    "lastUpdated": "2025-01-04"
+  },
+  "plugins": [
+    {
+      "name": "browser",
+      "description": "Browser automation with Chrome DevTools Protocol for scraping, testing, and visual verification",
+      "version": "1.0.0",
+      "source": "./",
+      "strict": false,
+      "skills": [
+        "./skills/browser"
+      ]
+    }
+  ]
+}
