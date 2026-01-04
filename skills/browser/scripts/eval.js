@@ -8,9 +8,11 @@ if (!code) {
 	console.log("\nExamples:");
 	console.log('  eval.js "document.title"');
 	console.log('  eval.js "document.querySelectorAll(\'a\').length"');
-	console.log("\nNote: The code must be a single expression or use IIFE for multiple statements:");
+	console.log('  eval.js "document.querySelector(\'#id\').value = \'text\'"');
+	console.log("\nNote: The code can be:");
 	console.log("  Single expression: 'document.title'");
-	console.log("  Multiple statements: '(() => { const x = 1; return x + 1; })()'");
+	console.log("  Statement: 'document.querySelector(\"#id\").value = \"text\"'");
+	console.log("  Multiple statements: wrap in IIFE or use semicolons");
 	process.exit(1);
 }
 
@@ -28,14 +30,23 @@ if (!p) {
 
 const result = await p.evaluate((c) => {
 	const AsyncFunction = (async () => {}).constructor;
-	// 智能检测：如果代码不包含 return，则自动包装
-	// 这样既支持表达式，也支持完整的语句块
 	let codeToExecute = c.trim();
-	if (!codeToExecute.includes('return ') && !codeToExecute.startsWith('return')) {
-		// 不包含 return，假设是表达式，添加 return
-		codeToExecute = `return (${codeToExecute})`;
+	
+	// 简单策略：
+	// 1. 如果代码以 return 开头或包含 return，直接执行
+	// 2. 如果代码以分号结尾，作为语句执行（不自动 return）
+	// 3. 否则，作为表达式执行（自动添加 return）
+	
+	if (/^\s*return\s/.test(codeToExecute) || codeToExecute.includes('return ')) {
+		// 已经包含 return
+		return new AsyncFunction(codeToExecute)();
+	} else if (codeToExecute.endsWith(';')) {
+		// 以分号结尾，作为语句执行
+		return new AsyncFunction(codeToExecute)();
+	} else {
+		// 作为表达式执行
+		return new AsyncFunction(`return (${codeToExecute})`)();
 	}
-	return new AsyncFunction(codeToExecute)();
 }, code);
 
 if (Array.isArray(result)) {
