@@ -6,7 +6,12 @@
     "homepage": "https://github.com/zjing123/claude-skills",
     "author": "zjing123",
     "license": "MIT",
-    "lastUpdated": "2025-01-04"
+    "lastUpdated": "2026-01-04",
+    "version": "1.0.0"
+  },
+  "owner": {
+    "name": "zjing123",
+    "url": "https://github.com/zjing123"
   },
   "plugins": [
     {
