@@ -28,7 +28,14 @@ if (!p) {
 
 const result = await p.evaluate((c) => {
 	const AsyncFunction = (async () => {}).constructor;
-	return new AsyncFunction(`return (${c})`)();
+	// 智能检测：如果代码不包含 return，则自动包装
+	// 这样既支持表达式，也支持完整的语句块
+	let codeToExecute = c.trim();
+	if (!codeToExecute.includes('return ') && !codeToExecute.startsWith('return')) {
+		// 不包含 return，假设是表达式，添加 return
+		codeToExecute = `return (${codeToExecute})`;
+	}
+	return new AsyncFunction(codeToExecute)();
 }, code);
 
 if (Array.isArray(result)) {

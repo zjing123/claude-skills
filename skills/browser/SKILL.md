@@ -40,17 +40,24 @@ Navigate current tab or open new tab.
 ## Evaluate JavaScript
 
 ```bash
+# 简单表达式（自动支持单引号和双引号）
 ./skills/browser/scripts/eval.js 'document.title'
+./skills/browser/scripts/eval.js "document.title"
 ./skills/browser/scripts/eval.js 'document.querySelectorAll("a").length'
+./skills/browser/scripts/eval.js "document.querySelectorAll('#username')"
+
+# 复杂语句（使用 IIFE）
+./skills/browser/scripts/eval.js '(() => { const x = 1; return x + 1; })()'
 ```
 
 Execute JavaScript in active tab (async context).
 
-**IMPORTANT**: The code must be a single expression or use IIFE for multiple statements:
-
-- Single expression: `'document.title'`
-- Multiple statements: `'(() => { const x = 1; return x + 1; })()'`
-- Avoid newlines in the code string - keep it on one line
+**IMPORTANT**:
+- 支持单引号和双引号包裹代码
+- 代码可以是表达式（自动添加 return）或完整的语句块
+- 避免换行，保持代码在一行内
+- 单表达式示例：`'document.title'` 或 `"document.title"`
+- 多语句示例：`'(() => { const x = 1; return x + 1; })()'`
 
 ## Screenshot
 
